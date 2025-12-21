@@ -9,7 +9,7 @@ import (
 
 type Repository interface {
 	Close()
-	PutAccount(ctx context.Context, a Account) eror
+	PutAccount(ctx context.Context, a Account) error
 	GetAccountById(ctx context.Context, id string) (*Account, error)
 	ListAccounts(ctx context.Context, skip uint64, take uint64) ([]Account, error)
 }
