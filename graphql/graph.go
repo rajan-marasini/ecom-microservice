@@ -1,1 +1,1 @@
-package graphql
+package main

@@ -1,5 +1,1 @@
-CreateAccount
-
-CreateProduct
-
-CreateOrders
+package main
