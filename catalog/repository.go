@@ -41,7 +41,7 @@ func NewElasticRepository(url string) (Repository, error) {
 		return nil, err
 	}
 
-	return &elasticRepository(client), nil
+	return &elasticRepository{client}, nil
 }
 
 func (r *elasticRepository) Close() {
