@@ -7,13 +7,15 @@ import (
 	"log"
 	"net"
 
-	"github.com/rajan-marasini/ecom-microservice/account/pb"
+	"strconv"
+
+	"github.com/rajan-marasini/ecom-microservice/catalog/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 
 type grpcServer struct {
-	pb.UnimplementedAccountServiceServer
+	pb.UnimplementedCatalogServiceServer
 	service Service
 }
 
@@ -24,7 +26,7 @@ func ListenGRPC(s Service, port int) error {
 	}
 
 	serv := grpc.NewServer()
-	pb.RegisterAccountServiceServer(serv, &grpcServer{
+	pb.RegisterCatalogServiceServer(serv, &grpcServer{
 		service: s,
 	})
 	reflection.Register(serv)
@@ -32,17 +34,20 @@ func ListenGRPC(s Service, port int) error {
 }
 
 func (s *grpcServer) PostProduct(ctx context.Context, r *pb.PostProductRequest) (*pb.PostProductResponse, error) {
-	p, err := s.service.PostProduct(ctx, r.name, r.description, r.Price)
+	p, err := s.service.PostProduct(ctx, r.Name, r.Description, float32(r.Price))
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
+
+	productPrice, _ := strconv.ParseFloat(p.Price, 64)
+
 	return &pb.PostProductResponse{
 		Product: &pb.Product{
 			Id:          p.ID,
 			Name:        p.Name,
 			Description: p.Description,
-			Price:       p.Price,
+			Price:       productPrice,
 		},
 	}, nil
 }
@@ -53,11 +58,12 @@ func (s *grpcServer) GetProduct(ctx context.Context, r *pb.GetProductRequest) (*
 		return nil, err
 	}
 
+	productPrice, _ := strconv.ParseFloat(p.Price, 64)
 	return &pb.GetProductResponse{
 		Product: &pb.Product{
 			Id:          p.ID,
 			Name:        p.Name,
-			Price:       p.Price,
+			Price:       productPrice,
 			Description: p.Description,
 		},
 	}, nil
@@ -82,13 +88,14 @@ func (s *grpcServer) GetProducts(ctx context.Context, r *pb.GetProductsRequest) 
 	products := []*pb.Product{}
 
 	for _, p := range res {
+		productPrice, _ := strconv.ParseFloat(p.Price, 64)
 		products = append(products, &pb.Product{
 			Id:          p.ID,
 			Name:        p.Name,
 			Description: p.Description,
-			Price:       p.Price,
+			Price:       productPrice,
 		})
 	}
 
-	return &pb.GetProductsResponse{products}, nil
+	return &pb.GetProductsResponse{Products: products}, nil
 }
