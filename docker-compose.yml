@@ -1,71 +1,91 @@
 services:
+    postgres:
+        image: postgres:17
+        environment:
+            POSTGRES_DB: postgres
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+        restart: on-failure
+
     account:
         build:
             context: .
             dockerfile: ./account/app.dockerfile
-            depends_on:
-                - account_db
-            environment:
-                DATABASE_URL: postgres://postgres:postgres@account_db/postgres?sslmode=disable
-            restart: on-failure
+        depends_on:
+            - postgres
+            - account_db
+        environment:
+            DATABASE_URL: postgres://postgres:postgres@account_db/postgres?sslmode=disable
+        restart: on-failure
+
     catalog:
         build:
             context: .
             dockerfile: ./catalog/app.dockerfile
-            depends_on:
-                - catalog_db
-            environment:
-                DATABASE_URL: http://catalog_db:9200
-            restart: on-failure
+        depends_on:
+            - catalog_db
+        environment:
+            DATABASE_URL: http://catalog_db:9200
+        restart: on-failure
 
     order:
         build:
             context: .
             dockerfile: ./order/app.dockerfile
-            depends_on:
-                - order_db
-            environment:
-                DATABASE_URL: postgres://postgres:postgres@order_db/postgres?sslmode=disable
-                ACCOUNT_SERVICE_URL: account:8080
-                CATALOG_SERVICE_URL: catalog:8080
-            restart: on-failure
+        depends_on:
+            - order_db
+            - account
+            - catalog
+        environment:
+            DATABASE_URL: postgres://postgres:postgres@order_db/postgres?sslmode=disable
+            ACCOUNT_SERVICE_URL: http://account:8080
+            CATALOG_SERVICE_URL: http://catalog:8080
+        restart: on-failure
 
     graphql:
         build:
             context: .
             dockerfile: ./graphql/app.dockerfile
-            ports:
-                - 8000:8080
-            depends_on:
-                - account
-                - catalog
-            environment:
-                ACCOUNT_SERVICE_URL: account:8080
-                CATALOG_SERVICE_URL: catalog:8080
-                ORDER_SERVICE_URL: order:8080
-            restart: on-failure
+        ports:
+            - "8000:8080"
+        depends_on:
+            - account
+            - catalog
+            - order
+        environment:
+            ACCOUNT_SERVICE_URL: http://account:8080
+            CATALOG_SERVICE_URL: http://catalog:8080
+            ORDER_SERVICE_URL: http://order:8080
+        restart: on-failure
 
     account_db:
         build:
             context: ./account
             dockerfile: ./db.dockerfile
-            environment:
-                POSTGRES_DB: postgres
-                POSTGRES_USER: postgres
-                POSTGRES_PASSWORD: postgres
-            restart: on-failure
+        environment:
+            POSTGRES_DB: postgres
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+        restart: on-failure
+        depends_on:
+            - postgres
 
     catalog_db:
-        image: docker.elastic.co/elasticsearch/elasticsearch:latest
+        image: docker.elastic.co/elasticsearch/elasticsearch:9.2.2
         environment:
-            ES_JAVA_OPTS: -Xms1g -Xmx1g
+            ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+            xpack.security.enabled: "false"
             discovery.type: single-node
+        restart: on-failure
 
     order_db:
-        context: ./order
-        dockerfile: ./db.docker
+        build:
+            context: ./order
+            dockerfile: ./db.dockerfile
         environment:
             POSTGRES_DB: postgres
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: postgres
         restart: unless-stopped
+        depends_on:
+            - postgres
