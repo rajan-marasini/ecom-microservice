@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"strconv"
 
 	"github.com/rajan-marasini/ecom-microservice/account"
 	"github.com/rajan-marasini/ecom-microservice/catalog"
@@ -75,15 +74,10 @@ func (s *grpcServer) PostOrder(ctx context.Context, r *pb.PostOrderRequest) (*pb
 
 	for _, p := range orderedProducts {
 
-		price, err := strconv.ParseFloat(p.Price, 32)
-		if err != nil {
-			return nil, err
-		}
-
 		product := OrderedProduct{
 			ID:          p.ID,
 			Quantity:    0,
-			Price:       price,
+			Price:       p.Price,
 			Name:        p.Name,
 			Description: p.Name,
 		}
@@ -177,7 +171,7 @@ func (s *grpcServer) GetOrdersForAccount(ctx context.Context, r *pb.GetOrdersFor
 			op.Products = append(op.Products, &pb.Order_OrderProduct{
 				Id:          product.ID,
 				Name:        product.Name,
-				Description: product.Name,
+				Description: product.Description,
 				Price:       product.Price,
 				Quantity:    product.Quantity,
 			})
