@@ -24,7 +24,7 @@ type OrderedProduct struct {
 	ID          string
 	Name        string
 	Description string
-	Price       float32
+	Price       float64
 	Quantity    uint32
 }
 
