@@ -2,13 +2,12 @@ package catalog
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/segmentio/ksuid"
 )
 
 type Service interface {
-	PostProduct(ctx context.Context, name, description string, price float32) (*Product, error)
+	PostProduct(ctx context.Context, name, description string, price float64) (*Product, error)
 	GetProduct(ctx context.Context, id string) (*Product, error)
 	GetProducts(ctx context.Context, skip uint64, take uint64) ([]Product, error)
 	GetProductByID(ctx context.Context, ids []string) ([]Product, error)
@@ -16,10 +15,10 @@ type Service interface {
 }
 
 type Product struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Price       string `json:"price"`
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	Price       float64 `json:"price"`
 }
 
 type catalogService struct {
@@ -30,11 +29,11 @@ func NewService(r Repository) Service {
 	return &catalogService{r}
 }
 
-func (r *catalogService) PostProduct(ctx context.Context, name, description string, price float32) (*Product, error) {
+func (r *catalogService) PostProduct(ctx context.Context, name, description string, price float64) (*Product, error) {
 	p := &Product{
 		Name:        name,
 		Description: description,
-		Price:       fmt.Sprintf("%f", price),
+		Price:       price,
 		ID:          ksuid.New().String(),
 	}
 	if err := r.repo.PutProduct(ctx, *p); err != nil {

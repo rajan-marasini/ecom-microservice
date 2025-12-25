@@ -2,7 +2,6 @@ package catalog
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/rajan-marasini/ecom-microservice/catalog/pb"
 	"google.golang.org/grpc"
@@ -41,7 +40,7 @@ func (c *Client) PostProduct(ctx context.Context, name, description string, pric
 		ID:          res.Product.Id,
 		Name:        res.Product.Name,
 		Description: res.Product.Description,
-		Price:       fmt.Sprintf("%f", res.Product.Price),
+		Price:       res.Product.Price,
 	}, nil
 }
 
@@ -60,7 +59,7 @@ func (c *Client) GetProduct(ctx context.Context, id string) (*Product, error) {
 		ID:          res.Product.Id,
 		Name:        res.Product.Name,
 		Description: res.Product.Description,
-		Price:       fmt.Sprintf("%f", res.Product.Price),
+		Price:       res.Product.Price,
 	}, nil
 
 }
@@ -86,7 +85,7 @@ func (c *Client) GetProducts(ctx context.Context, skip, take uint64, ids []strin
 			ID:          p.Id,
 			Name:        p.Name,
 			Description: p.Description,
-			Price:       fmt.Sprintf("%f", p.Price),
+			Price:       p.Price,
 		})
 	}
 

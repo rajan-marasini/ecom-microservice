@@ -7,8 +7,6 @@ import (
 	"log"
 	"net"
 
-	"strconv"
-
 	"github.com/rajan-marasini/ecom-microservice/catalog/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -34,20 +32,18 @@ func ListenGRPC(s Service, port int) error {
 }
 
 func (s *grpcServer) PostProduct(ctx context.Context, r *pb.PostProductRequest) (*pb.PostProductResponse, error) {
-	p, err := s.service.PostProduct(ctx, r.Name, r.Description, float32(r.Price))
+	p, err := s.service.PostProduct(ctx, r.Name, r.Description, r.Price)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-
-	productPrice, _ := strconv.ParseFloat(p.Price, 64)
 
 	return &pb.PostProductResponse{
 		Product: &pb.Product{
 			Id:          p.ID,
 			Name:        p.Name,
 			Description: p.Description,
-			Price:       productPrice,
+			Price:       p.Price,
 		},
 	}, nil
 }
@@ -58,12 +54,11 @@ func (s *grpcServer) GetProduct(ctx context.Context, r *pb.GetProductRequest) (*
 		return nil, err
 	}
 
-	productPrice, _ := strconv.ParseFloat(p.Price, 64)
 	return &pb.GetProductResponse{
 		Product: &pb.Product{
 			Id:          p.ID,
 			Name:        p.Name,
-			Price:       productPrice,
+			Price:       p.Price,
 			Description: p.Description,
 		},
 	}, nil
@@ -88,12 +83,11 @@ func (s *grpcServer) GetProducts(ctx context.Context, r *pb.GetProductsRequest) 
 	products := []*pb.Product{}
 
 	for _, p := range res {
-		productPrice, _ := strconv.ParseFloat(p.Price, 64)
 		products = append(products, &pb.Product{
 			Id:          p.ID,
 			Name:        p.Name,
 			Description: p.Description,
-			Price:       productPrice,
+			Price:       p.Price,
 		})
 	}
 
